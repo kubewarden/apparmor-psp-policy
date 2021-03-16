@@ -17,10 +17,6 @@ pub extern "C" fn wapc_init() {
 fn validate(payload: &[u8]) -> CallResult {
     let validation_req = ValidationRequest::<Settings>::new(payload)?;
 
-    if validation_req.is_request_made_by_trusted_user() {
-        return accept_request();
-    }
-
     let apparmor_profiles = get_apparmor_profiles(&validation_req)
         .map_err(|e| anyhow!("Error while searching request: {:?}", e,))?;
 
@@ -89,11 +85,9 @@ mod tests {
     use chimera_kube_policy_sdk::test::Testcase;
 
     macro_rules! configuration {
-        (allowed_profiles: $allowed_profiles:expr, allowed_users: $users:expr, allowed_groups: $groups:expr) => {
+        (allowed_profiles: $allowed_profiles:expr) => {
             Settings {
                 allowed_profiles: $allowed_profiles.split(",").map(String::from).collect(),
-                allowed_users: $users.split(",").map(String::from).collect(),
-                allowed_groups: $groups.split(",").map(String::from).collect(),
             };
         };
     }
@@ -103,30 +97,15 @@ mod tests {
         let request_file = "test_data/req_pod_without_apparmor_profile.json";
         let tests = vec![
             Testcase {
-                name: String::from("Accept request because user is trusted"),
+                name: String::from("Accept request when allowed_profiles is empty"),
                 fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "",
-                allowed_users: "admin,kubernetes-admin",
-                allowed_groups: ""),
+                settings: configuration!(allowed_profiles: ""),
                 expected_validation_result: true,
             },
             Testcase {
-                name: String::from("Accept request because user belongs to a trusted group"),
+                name: String::from("Accept request when allowed_profiles is not empty"),
                 fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "",
-                allowed_users: "",
-                allowed_groups: "system:masters"),
-                expected_validation_result: true,
-            },
-            Testcase {
-                name: String::from("Accept request from untrusted user"),
-                fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "",
-                allowed_users: "",
-                allowed_groups: ""),
+                settings: configuration!( allowed_profiles: "localhost/special-profile"),
                 expected_validation_result: true,
             },
         ];
@@ -143,30 +122,15 @@ mod tests {
         let request_file = "test_data/req_pod_with_custom_apparmor_profile.json";
         let tests = vec![
             Testcase {
-                name: String::from("Accept request because user is trusted"),
+                name: String::from("Reject because allowed_profiles is empty"),
                 fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "",
-                allowed_users: "admin,kubernetes-admin",
-                allowed_groups: ""),
-                expected_validation_result: true,
+                settings: configuration!(allowed_profiles: ""),
+                expected_validation_result: false,
             },
             Testcase {
-                name: String::from("Accept request because user belongs to a trusted group"),
+                name: String::from("Reject because not all the profiles are allowed"),
                 fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "",
-                allowed_users: "",
-                allowed_groups: "system:masters"),
-                expected_validation_result: true,
-            },
-            Testcase {
-                name: String::from("Reject request from untrusted user"),
-                fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "",
-                allowed_users: "",
-                allowed_groups: ""),
+                settings: configuration!(allowed_profiles: "runtime/default"),
                 expected_validation_result: false,
             },
         ];
@@ -181,79 +145,16 @@ mod tests {
     #[test]
     fn allowed_apparmor_profile() -> Result<()> {
         let request_file = "test_data/req_pod_with_custom_apparmor_profile.json";
-        let tests = vec![
-            Testcase {
-                name: String::from("Accept request because user is trusted"),
-                fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "runtime/default,localhost/cognac-cointreau-lemon",
-                allowed_users: "admin,kubernetes-admin",
-                allowed_groups: ""),
-                expected_validation_result: true,
-            },
-            Testcase {
-                name: String::from("Accept request because user belongs to a trusted group"),
-                fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "runtime/default,localhost/cognac-cointreau-lemon",
-                allowed_users: "",
-                allowed_groups: "system:masters"),
-                expected_validation_result: true,
-            },
-            Testcase {
-                name: String::from("Accept request from untrusted user"),
-                fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "runtime/default,localhost/cognac-cointreau-lemon",
-                allowed_users: "",
-                allowed_groups: ""),
-                expected_validation_result: true,
-            },
-        ];
+        let tc = Testcase {
+            name: String::from("Accept "),
+            fixture_file: String::from(request_file),
+            settings: configuration!(
+                allowed_profiles: "runtime/default,localhost/cognac-cointreau-lemon,localhost/another-profile"
+            ),
+            expected_validation_result: true,
+        };
 
-        for tc in tests.iter() {
-            let _ = tc.eval(validate);
-        }
-
-        Ok(())
-    }
-
-    #[test]
-    fn unconfined_apparmor_profile() -> Result<()> {
-        let request_file = "test_data/req_pod_with_unconfined_apparmor_profile.json";
-        let tests = vec![
-            Testcase {
-                name: String::from("Accept request because user is trusted"),
-                fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "runtime/default",
-                allowed_users: "admin,kubernetes-admin",
-                allowed_groups: ""),
-                expected_validation_result: true,
-            },
-            Testcase {
-                name: String::from("Accept request because user belongs to a trusted group"),
-                fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "runtime/default",
-                allowed_users: "",
-                allowed_groups: "system:masters"),
-                expected_validation_result: true,
-            },
-            Testcase {
-                name: String::from("Accept request from untrusted user"),
-                fixture_file: String::from(request_file),
-                settings: configuration!(
-                allowed_profiles: "runtime/default",
-                allowed_users: "",
-                allowed_groups: ""),
-                expected_validation_result: false,
-            },
-        ];
-
-        for tc in tests.iter() {
-            let _ = tc.eval(validate);
-        }
+        let _ = tc.eval(validate);
 
         Ok(())
     }

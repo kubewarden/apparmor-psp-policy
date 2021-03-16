@@ -18,10 +18,6 @@ AppArmor profile provided by Container Runtime. Because of that, the default
 behaviour of this policy is to accept workloads that do not have an AppArmor
 profile specified.
 
-Finally, it's also possible to specify a list of users and groups of users who
-are not affected by this policy. These trusted users will be able to schedule
-their workloads using whatever profile they desire.
-
 # Configuration
 
 The policy can be configured with the following data structure:
@@ -31,16 +27,6 @@ The policy can be configured with the following data structure:
 allowed_profiles:
 - runtime/default
 - localhost/my-special-workload
-
-# list of groups that are not impacted by the policy
-allowed_groups:
-- administrators
-- system:masters
-
-# list of users that are not impacted by the policy
-allowed_users:
-- alice
-- joe
 ```
 
 # Examples
@@ -109,21 +95,6 @@ spec:
   - name: hello
     image: busybox
     command: [ "sh", "-c", "echo 'Hello AppArmor!' && sleep 1h" ]
-```
-
-## Allow selected users to run `unconfined` workloads
-
-These settings will allow the user `alice` and all the members of the
-`system:administrators` group to run `unconfined` workloads:
-
-```yaml
-allowed_profiles:
-- runtime/default
-
-allowed_users:
-- alice
-allowed_groups:
-- system:administrators
 ```
 
 ## Limit the AppArmor profiles that can be used

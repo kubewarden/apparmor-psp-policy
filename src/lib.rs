@@ -2,10 +2,12 @@ extern crate wapc_guest as guest;
 use guest::prelude::*;
 
 use anyhow::anyhow;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 mod settings;
 use settings::Settings;
+
+use jsonpath_lib as jsonpath;
 
 use chimera_kube_policy_sdk::{accept_request, reject_request, request::ValidationRequest};
 
@@ -44,37 +46,18 @@ fn validate(payload: &[u8]) -> CallResult {
 fn get_apparmor_profiles(
     validation_req: &ValidationRequest<Settings>,
 ) -> anyhow::Result<HashSet<String>> {
-    let query = "metadata.annotations";
-    let mut res = HashSet::<String>::new();
+    let mut selector =
+        jsonpath::selector_as::<HashMap<String, String>>(&validation_req.request.object);
 
-    let containers_query = jmespatch::compile(query)
-        .map_err(|e| anyhow!("Cannot parse jmespath expression: {:?}", e,))?;
-
-    let raw_search_result = validation_req
-        .search(containers_query)
-        .map_err(|e| anyhow!("Error while searching request: {:?}", e,))?;
-    if raw_search_result.is_null() {
-        return Ok(res);
-    }
-
-    let search_result = raw_search_result.as_object().ok_or_else(|| {
-        anyhow!(
-            "Expected search matches to be an Object, got {:?} instead",
-            raw_search_result
-        )
-    })?;
-
-    for (key, value) in search_result {
-        if !key.starts_with("container.apparmor.security.beta.kubernetes.io/") {
-            continue;
-        }
-
-        if let Some(s) = value.as_string() {
-            res.insert(s.clone());
-        }
-    }
-
-    Ok(res)
+    let annotations: HashSet<String> = selector("$.metadata.annotations")
+        .map_err(|e| anyhow!("error querying metadata: {:?}", e))?
+        .pop()
+        .unwrap_or_default()
+        .iter()
+        .filter(|&(k, _v)| k.starts_with("container.apparmor.security.beta.kubernetes.io/"))
+        .map(|(_k, v)| v.to_owned())
+        .collect();
+    Ok(annotations)
 }
 
 #[cfg(test)]

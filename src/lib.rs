@@ -21,7 +21,7 @@ fn validate(payload: &[u8]) -> CallResult {
         .map_err(|e| anyhow!("Error while searching request: {:?}", e,))?;
 
     if apparmor_profiles.is_empty() {
-        return accept_request();
+        return accept_request(None);
     }
 
     let not_allowed: Vec<String> = apparmor_profiles
@@ -29,7 +29,7 @@ fn validate(payload: &[u8]) -> CallResult {
         .map(String::from)
         .collect();
     if not_allowed.is_empty() {
-        return accept_request();
+        return accept_request(None);
     }
 
     reject_request(

@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       WASM_BINARY_NAME: psp_apparmor
-      OCI_TARGET: ghcr.io/chimera-kube/policies/psp-apparmor
+      OCI_TARGET: ghcr.io/kubewarden/policies/psp-apparmor
     steps:
       -
         name: Checkout code

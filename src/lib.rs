@@ -1,15 +1,14 @@
 extern crate wapc_guest as guest;
 use guest::prelude::*;
 
-use anyhow::anyhow;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 mod settings;
 use settings::Settings;
 
-use jsonpath_lib as jsonpath;
+use kubewarden_policy_sdk::{accept_request, reject_request, request::ValidationRequest};
 
-use chimera_kube_policy_sdk::{accept_request, reject_request, request::ValidationRequest};
+use k8s_openapi::api::core::v1 as apicore;
 
 #[no_mangle]
 pub extern "C" fn wapc_init() {
@@ -18,46 +17,44 @@ pub extern "C" fn wapc_init() {
 
 fn validate(payload: &[u8]) -> CallResult {
     let validation_req = ValidationRequest::<Settings>::new(payload)?;
+    let pod = serde_json::from_value::<apicore::Pod>(validation_req.request.object)?;
 
-    let apparmor_profiles = get_apparmor_profiles(&validation_req)
-        .map_err(|e| anyhow!("Error while searching request: {:?}", e,))?;
-
+    let apparmor_profiles = get_apparmor_profiles(&pod);
     if apparmor_profiles.is_empty() {
-        return accept_request(None);
+        return accept_request();
     }
 
-    let not_allowed: Vec<String> = apparmor_profiles
+    let disallowed_profiles: Vec<&String> = apparmor_profiles
         .difference(&validation_req.settings.allowed_profiles)
-        .map(String::from)
         .collect();
-    if not_allowed.is_empty() {
-        return accept_request(None);
-    }
 
-    reject_request(
-        Some(format!(
-            "These AppArmor profiles are not allowed: {:?}",
-            not_allowed
-        )),
-        None,
-    )
+    if disallowed_profiles.is_empty() {
+        accept_request()
+    } else {
+        reject_request(
+            Some(format!(
+                "These AppArmor profiles are not allowed: {:?}",
+                disallowed_profiles
+            )),
+            None,
+        )
+    }
 }
 
-fn get_apparmor_profiles(
-    validation_req: &ValidationRequest<Settings>,
-) -> anyhow::Result<HashSet<String>> {
-    let mut selector =
-        jsonpath::selector_as::<HashMap<String, String>>(&validation_req.request.object);
-
-    let annotations: HashSet<String> = selector("$.metadata.annotations")
-        .map_err(|e| anyhow!("error querying metadata: {:?}", e))?
-        .pop()
-        .unwrap_or_default()
+fn get_apparmor_profiles(pod: &apicore::Pod) -> HashSet<String> {
+    pod.metadata
+        .annotations
+        .as_ref()
+        .unwrap_or(&std::collections::BTreeMap::new())
         .iter()
-        .filter(|&(k, _v)| k.starts_with("container.apparmor.security.beta.kubernetes.io/"))
-        .map(|(_k, v)| v.to_owned())
-        .collect();
-    Ok(annotations)
+        .filter_map(|(annotation_key, annotation_value)| {
+            if annotation_key.starts_with("container.apparmor.security.beta.kubernetes.io/") {
+                Some(annotation_value.clone())
+            } else {
+                None
+            }
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -65,7 +62,7 @@ mod tests {
     use super::*;
     use anyhow::Result;
 
-    use chimera_kube_policy_sdk::test::Testcase;
+    use kubewarden_policy_sdk::test::Testcase;
 
     macro_rules! configuration {
         (allowed_profiles: $allowed_profiles:expr) => {

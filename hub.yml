@@ -1,0 +1,15 @@
+name: psp-apparmor
+description: A Pod Security Policy that controls usage of AppArmor profiles
+homepage: https://github.com/kubewarden/psp-apparmor
+author:
+  name: Kubewarden devs
+  homepage: https://github.com/kubewarden
+download:
+  registry: ghcr.io/kubewarden/policies/psp-apparmor:__TAG__
+  url: https://github.com/kubewarden/psp-apparmor/releases/download/__TAG__/policy.wasm
+keywords:
+  - PSP
+  - AppArmor
+resources:
+  - Pod
+mutation: false

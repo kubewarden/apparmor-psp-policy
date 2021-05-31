@@ -1,0 +1,26 @@
+rules:
+- apiGroups: [""]
+  apiVersions: ["v1"]
+  resources: ["pods"]
+  operations: ["CREATE", "UPDATE"]
+mutating: false
+annotations:
+  name.castelli.hello: world
+  io.kubewarden.policy.title: psp-apparmor
+  io.kubewarden.policy.description: Replacement for the Kubernetes Pod Security Policy that controls the usage of AppArmor profiles
+  io.kubewarden.policy.author: Flavio Castelli
+  io.kubewarden.policy.url: https://github.com/kubewarden/psp-apparmor
+  io.kubewarden.policy.source: https://github.com/kubewarden/psp-apparmor
+  io.kubewarden.policy.license: Apache-2.0
+  io.kubewarden.policy.usage: |
+    This policy works by defining a whitelist of allowed AppArmor profiles. Pods are then inspected at creation and update time, to ensure only approved profiles are used.
+
+    When no AppArmor profile is defined, Kubernetes will leave the final choice to the underlying container runtime. This will result in using the default AppArmor profile provided by Container Runtime. Because of that, the default behaviour of this policy is to accept workloads that do not have an AppArmor profile specified.
+
+    The policy can be configured with the following data structure:
+    ```yaml
+    # list of allowed profiles
+    allowed_profiles:
+    - runtime/default
+    - localhost/my-special-workload
+    ```

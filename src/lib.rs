@@ -7,7 +7,8 @@ mod settings;
 use settings::Settings;
 
 use kubewarden_policy_sdk::{
-    accept_request, reject_request, request::ValidationRequest, validate_settings,
+    accept_request, protocol_version_guest, reject_request, request::ValidationRequest,
+    validate_settings,
 };
 
 use k8s_openapi::api::core::v1 as apicore;
@@ -16,6 +17,7 @@ use k8s_openapi::api::core::v1 as apicore;
 pub extern "C" fn wapc_init() {
     register_function("validate", validate);
     register_function("validate_settings", validate_settings::<Settings>);
+    register_function("protocol_version", protocol_version_guest);
 }
 
 fn validate(payload: &[u8]) -> CallResult {

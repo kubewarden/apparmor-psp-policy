@@ -5,7 +5,6 @@ rules:
   operations: ["CREATE", "UPDATE"]
 mutating: false
 annotations:
-  name.castelli.hello: world
   io.kubewarden.policy.title: psp-apparmor
   io.kubewarden.policy.description: Replacement for the Kubernetes Pod Security Policy that controls the usage of AppArmor profiles
   io.kubewarden.policy.author: Flavio Castelli

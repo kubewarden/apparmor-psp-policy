@@ -30,7 +30,7 @@ jobs:
       WASM_BINARY_NAME: psp_apparmor
       OCI_TARGET: ghcr.io/kubewarden/policies/psp-apparmor
       METADATA_FILE: metadata.yml
-      KWCTL_VERSION: v0.1.3
+      KWCTL_VERSION: v0.1.4
     steps:
       -
         name: Checkout code

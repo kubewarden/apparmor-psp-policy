@@ -4,6 +4,7 @@ rules:
   resources: ["pods"]
   operations: ["CREATE", "UPDATE"]
 mutating: false
+contextAware: false
 annotations:
   io.kubewarden.policy.title: psp-apparmor
   io.kubewarden.policy.description: Replacement for the Kubernetes Pod Security Policy that controls the usage of AppArmor profiles

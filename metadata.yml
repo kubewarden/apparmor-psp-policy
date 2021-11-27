@@ -9,8 +9,8 @@ annotations:
   io.kubewarden.policy.title: psp-apparmor
   io.kubewarden.policy.description: Replacement for the Kubernetes Pod Security Policy that controls the usage of AppArmor profiles
   io.kubewarden.policy.author: Flavio Castelli
-  io.kubewarden.policy.url: https://github.com/kubewarden/psp-apparmor
-  io.kubewarden.policy.source: https://github.com/kubewarden/psp-apparmor
+  io.kubewarden.policy.url: https://github.com/kubewarden/apparmor-psp-policy
+  io.kubewarden.policy.source: https://github.com/kubewarden/apparmor-psp-policy
   io.kubewarden.policy.license: Apache-2.0
   io.kubewarden.policy.usage: |
     This policy works by defining a whitelist of allowed AppArmor profiles. Pods are then inspected at creation and update time, to ensure only approved profiles are used.

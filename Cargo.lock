@@ -9,6 +9,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28b2cd92db5cbd74e8e5028f7e27dd7aa3090e89e4f2a197cc7c8dfb69c7063b"
 
 [[package]]
+name = "apparmor-psp"
+version = "0.1.8"
+dependencies = [
+ "anyhow",
+ "k8s-openapi",
+ "kubewarden-policy-sdk",
+ "serde",
+ "serde_json",
+ "wapc-guest",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -244,18 +256,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a152013215dca273577e18d2bf00fa862b89b24169fb78c4c95aeb07992c9cec"
 dependencies = [
  "unicode-xid",
-]
-
-[[package]]
-name = "psp-apparmor"
-version = "0.1.6"
-dependencies = [
- "anyhow",
- "k8s-openapi",
- "kubewarden-policy-sdk",
- "serde",
- "serde_json",
- "wapc-guest",
 ]
 
 [[package]]

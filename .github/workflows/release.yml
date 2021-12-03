@@ -27,8 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     env:
-      WASM_BINARY_NAME: psp_apparmor
-      OCI_TARGET: ghcr.io/kubewarden/policies/psp-apparmor
+      WASM_BINARY_NAME: apparmor_psp
+      OCI_TARGET: ghcr.io/kubewarden/policies/apparmor-psp
       METADATA_FILE: metadata.yml
       KWCTL_VERSION: v0.1.9
     steps:

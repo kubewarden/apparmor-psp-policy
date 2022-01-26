@@ -1,8 +1,12 @@
 HYPERFINE := $(shell command -v hyperfine 2> /dev/null)
+SOURCE_FILES := $(shell test -e src/ && find src -type f)
 
-.PHONY: build
-build:
+policy.wasm: $(SOURCE_FILES) Cargo.*
 	cargo build --target=wasm32-unknown-unknown --release
+	mv target/wasm32-unknown-unknown/release/*.wasm policy.wasm
+
+annotated-policy.wasm: policy.wasm metadata.yml
+	kwctl annotate -m metadata.yml -o annotated-policy.wasm policy.wasm
 
 .PHONY: registry
 registry:
@@ -20,6 +24,9 @@ fmt:
 lint:
 	cargo clippy -- -D warnings
 
+.PHONY: e2e-tests
+e2e-tests: annotated-policy.wasm
+	@echo "Dummy target to allow using the reusable github actions to build, test and release policies"
 
 .PHONY: test
 test: fmt lint
@@ -28,3 +35,4 @@ test: fmt lint
 .PHONY: clean
 clean:
 	cargo clean
+	rm -f policy.wasm annotated-policy.wasm

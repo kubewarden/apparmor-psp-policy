@@ -73,7 +73,7 @@ mod tests {
         (allowed_profiles: $allowed_profiles:expr) => {
             Settings {
                 allowed_profiles: $allowed_profiles.split(",").map(String::from).collect(),
-            };
+            }
         };
     }
 

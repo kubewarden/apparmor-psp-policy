@@ -1,5 +1,5 @@
-extern crate wapc_guest as guest;
 use guest::prelude::*;
+use kubewarden_policy_sdk::wapc_guest as guest;
 
 use std::collections::HashSet;
 
@@ -41,6 +41,8 @@ fn validate(payload: &[u8]) -> CallResult {
                 "These AppArmor profiles are not allowed: {:?}",
                 disallowed_profiles
             )),
+            None,
+            None,
             None,
         )
     }

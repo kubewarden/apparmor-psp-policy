@@ -26,5 +26,3 @@ jobs:
     with:
       input-wasm: apparmor_psp
       oci-target: ghcr.io/${{ github.repository_owner }}/policies/apparmor-psp
-    secrets:
-      workflow-pat: ${{ secrets.WORKFLOW_PAT }}

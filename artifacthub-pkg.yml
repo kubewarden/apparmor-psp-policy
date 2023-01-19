@@ -1,20 +1,20 @@
 ---
-version: 0.1.9
+version: 0.1.10
 name: apparmor-psp
 displayName: Apparmor PSP
-createdAt: '2022-07-19T15:41:13+02:00'
+createdAt: '2023-01-19T14:46:21+02:00'
 description: A Pod Security Policy that controls usage of AppArmor profiles
 license: Apache-2.0
 homeURL: https://github.com/kubewarden/apparmor-psp-policy
 containersImages:
 - name: policy
-  image: ghcr.io/kubewarden/policies/apparmor-psp:v0.1.9
+  image: ghcr.io/kubewarden/policies/apparmor-psp:v0.1.10
 keywords:
 - psp
 - apparmor
 links:
 - name: policy
-  url: https://github.com/kubewarden/apparmor-psp-policy/releases/download/v0.1.9/policy.wasm
+  url: https://github.com/kubewarden/apparmor-psp-policy/releases/download/v0.1.10/policy.wasm
 - name: source
   url: https://github.com/kubewarden/apparmor-psp-policy
 provider:
@@ -25,3 +25,26 @@ annotations:
   kubewarden/resources: Pod
   kubewarden/mutation: false
   kubewarden/contextAware: false
+  kubewarden/rules: |
+    rules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      resources: ["pods"]
+      operations: ["CREATE", "UPDATE"]
+  kubewarden/questions-ui: |
+    questions:
+    - default: []
+      description: >-
+        This policy works by defining a whitelist of allowed AppArmor profiles. Pods
+        are then inspected at creation and update time, to ensure only approved
+        profiles are used. When no AppArmor profile is defined, Kubernetes will
+        leave the final choice to the underlying container runtime. This will result
+        in using the default AppArmor profile provided by Container Runtime. Because
+        of that, the default behaviour of this policy is to accept workloads that do
+        not have an AppArmor profile specified.
+      tooltip: Provide a list of allowed AppArmor profiles
+      group: Settings
+      label: Allowed profiles
+      required: false
+      type: array[
+      variable: allowed_profiles

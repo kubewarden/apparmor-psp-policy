@@ -1,0 +1,66 @@
+# Kubewarden Artifacthub Package config
+#
+# Use this config to submit the policy to https://artifacthub.io.
+#
+# This config can be saved to its default location with:
+#   kwctl scaffold artifacthub > artifacthub-pkg.yml 
+version: 0.1.13
+name: psp-apparmor
+displayName: Apparmor PSP
+createdAt: 2023-07-07T18:35:47.38052711Z
+description: Replacement for the Kubernetes Pod Security Policy that controls the usage of AppArmor profiles
+license: Apache-2.0
+homeURL: https://github.com/kubewarden/apparmor-psp-policy
+containersImages:
+- name: policy
+  image: ghcr.io/kubewarden/policies/apparmor-psp:v0.1.13
+keywords:
+- psp
+- apparmor
+links:
+- name: policy
+  url: https://github.com/kubewarden/apparmor-psp-policy/releases/download/v0.1.13/policy.wasm
+- name: source
+  url: https://github.com/kubewarden/apparmor-psp-policy
+install: |
+  The policy can be obtained using [`kwctl`](https://github.com/kubewarden/kwctl):
+  ```console
+  kwctl pull ghcr.io/kubewarden/policies/apparmor-psp:v0.1.13
+  ```
+maintainers:
+- name: Kubewarden developers
+  email: cncf-kubewarden-maintainers@lists.cncf.io
+provider:
+  name: kubewarden
+recommendations:
+- url: https://artifacthub.io/packages/helm/kubewarden/kubewarden-controller
+annotations:
+  kubewarden/mutation: 'false'
+  kubewarden/questions-ui: |
+    questions:
+    - default: []
+      description: >-
+        This policy works by defining a whitelist of allowed AppArmor profiles. Pods
+        are then inspected at creation and update time, to ensure only approved
+        profiles are used. When no AppArmor profile is defined, Kubernetes will
+        leave the final choice to the underlying container runtime. This will result
+        in using the default AppArmor profile provided by Container Runtime. Because
+        of that, the default behaviour of this policy is to accept workloads that do
+        not have an AppArmor profile specified.
+      tooltip: Provide a list of allowed AppArmor profiles
+      group: Settings
+      label: Allowed profiles
+      required: false
+      type: array[
+      variable: allowed_profiles
+  kubewarden/resources: Pod
+  kubewarden/rules: |
+    - apiGroups:
+      - ''
+      apiVersions:
+      - v1
+      resources:
+      - pods
+      operations:
+      - CREATE
+      - UPDATE

@@ -7,7 +7,7 @@
 version: 0.1.13
 name: psp-apparmor
 displayName: Apparmor PSP
-createdAt: 2023-07-07T18:35:47.38052711Z
+createdAt: 2023-10-16T08:41:48.344835749Z
 description: Replacement for the Kubernetes Pod Security Policy that controls the usage of AppArmor profiles
 license: Apache-2.0
 homeURL: https://github.com/kubewarden/apparmor-psp-policy
@@ -26,6 +26,10 @@ install: |
   The policy can be obtained using [`kwctl`](https://github.com/kubewarden/kwctl):
   ```console
   kwctl pull ghcr.io/kubewarden/policies/apparmor-psp:v0.1.13
+  ```
+  Then, generate the policy manifest and tune it to your liking. For example:
+  ```console
+  kwctl scaffold manifest -t ClusterAdmissionPolicy registry://ghcr.io/kubewarden/policies/apparmor-psp:v0.1.13
   ```
 maintainers:
 - name: Kubewarden developers

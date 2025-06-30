@@ -38,8 +38,7 @@ fn validate(payload: &[u8]) -> CallResult {
     } else {
         reject_request(
             Some(format!(
-                "These AppArmor profiles are not allowed: {:?}",
-                disallowed_profiles
+                "These AppArmor profiles are not allowed: {disallowed_profiles:?}"
             )),
             None,
             None,

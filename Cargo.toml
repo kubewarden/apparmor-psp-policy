@@ -12,6 +12,6 @@ anyhow = "1.0"
 k8s-openapi = { version = "0.26.0", default_features = false, features = [
   "v1_32",
 ] }
-kubewarden-policy-sdk = { version = "0.14.0", default_features = false }
+kubewarden-policy-sdk = { version = "0.15.0", default_features = false }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
